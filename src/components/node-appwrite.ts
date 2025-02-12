@@ -133,10 +133,6 @@ export async function UpdateUser(
   userId: string
 ) {
   const users = new Users(await CreateAdminClient());
-  // console.log("Username: " + username);
-  // console.log("Email: " + email);
-  // console.log("Password: " + password);
-  // console.log("UserId: " + userId);
   let updateMessage = `Successfully updated ${userId}: `;
   try {
     if (username) {
@@ -167,24 +163,47 @@ export async function DeleteUser(userId: string) {
   }
 }
 
-export async function SaveFile(
-  bucketId: string,
-  fileID: string,
-  file: File
-) {
+export async function SaveFile(bucketId: string, fileID: string, file: File) {
   const storage = new Storage(await CreateAdminClient());
   let response;
-  if(await FileExists(bucketId,fileID) && fileID !== ""){
+  if (
+    (await FileExists(bucketId, fileID)) &&
+    fileID !== "" &&
+    (await FileNameExists(bucketId, file.name))
+  ) {
     //file exists, updating it
 
-  response = await storage.deleteFile(bucketId,fileID);
-  return;
+    response = await storage.deleteFile(bucketId, fileID);
+    return;
   }
-  response = await storage.createFile(bucketId, fileID !== ""? fileID : ID.unique(), file);
+  response = await storage.createFile(
+    bucketId,
+    fileID !== "" ? fileID : ID.unique(),
+    file
+  );
   if (response.$id) {
     return { code: 200, message: "File uploaded" };
   }
   return { code: 404, message: "File upload failed" };
+}
+
+export async function DeleteFile(
+  bucketId: string,
+  fileID?: string,
+  fileName?: string
+) {
+  const storage = new Storage(await CreateAdminClient());
+  try {
+    let ID = fileID || "";
+    if (fileName != "") {
+      const response = await storage.listFiles(bucketId, [Query.limit(1)], fileName);
+      ID = response.files[0].$id;
+    }
+    await storage.deleteFile(bucketId, ID);
+    return { code: 200, message: "File deleted" };
+  } catch (error) {
+    return { code: 404, message: "File deletion failed" };
+  }
 }
 
 export async function FileExists(bucketId: string, fileID: string) {
@@ -196,22 +215,27 @@ export async function FileExists(bucketId: string, fileID: string) {
     return false;
   }
 }
-
-export async function GetFileNames(bucketID:string,componentName: string) {
+export async function FileNameExists(bucketId: string, fileName: string) {
   const storage = new Storage(await CreateAdminClient());
-  const data = await storage.listFiles(bucketID,[],componentName);
+  const data = await storage.listFiles(bucketId, [], fileName);
+  return data.files.length > 0;
+}
+
+export async function GetFileNames(bucketID: string, componentName: string) {
+  const storage = new Storage(await CreateAdminClient());
+  const data = await storage.listFiles(bucketID, [], componentName);
   return data.files;
 }
-export async function GetAllBucketFiles(bucketID:string) {
+export async function GetAllBucketFiles(bucketID: string) {
   const storage = new Storage(await CreateAdminClient());
-  const data = await storage.listFiles(bucketID,[Query.limit(200)],".tsx");
+  const data = await storage.listFiles(bucketID, [Query.limit(200)], ".tsx");
   return data.files;
 }
 
 export async function GetFileView(bucketId: string, fileID: string) {
   const storage = new Storage(await CreateAdminClient());
   try {
-    return{ code:200,message: await storage.getFileView(bucketId, fileID)} 
+    return { code: 200, message: await storage.getFileView(bucketId, fileID) };
   } catch (error) {
     return { code: 404, message: "File view failed" };
   }
@@ -260,8 +284,6 @@ export async function LoadFromDatabase(
   }
 }
 
-
-
 export async function LoadFromCollection(
   databaseID: string,
   collectionID: string
@@ -286,6 +308,10 @@ export async function DeleteFromDatabase(
   documentID: string
 ) {
   const database = new Databases(await CreateAdminClient());
+  // console.log(databaseID);
+  // console.log(collectionID);
+  // console.log(documentID);
+
   try {
     await database.deleteDocument(databaseID, collectionID, documentID);
     return { code: 200, message: "Document deleted" };

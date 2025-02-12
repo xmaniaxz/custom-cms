@@ -15,6 +15,7 @@ const WebsitePage = dynamic(() => import("@/app/dashboard/website/page"), {
 const DiscordPage = dynamic(() => import("@/app/dashboard/discord/page"), {
   ssr: false,
 });
+const StoragePage = dynamic(() => import("@/app/dashboard/storage/page"), {ssr: false});
 
 export default function Dashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function Dashboard() {
     "top" | "left" | "bottom" | "right"
   >("left");
   const [menuThickness, setMenuThickness] = useState("20vw");
-  const [openPage, setOpenPage] = useState<string>("website");
+  const [openPage, setOpenPage] = useState<string>("storage");
 
   const toggleMenu = (
     position: "top" | "left" | "bottom" | "right",
@@ -77,6 +78,7 @@ export default function Dashboard() {
           {openPage === "auth" && <AuthPage />}
           {openPage === "website" && <WebsitePage />}
           {openPage === "discord" && <DiscordPage />}
+          {openPage === "storage" && <StoragePage />}
         </div>
         {openPage == "" && (
           <>
