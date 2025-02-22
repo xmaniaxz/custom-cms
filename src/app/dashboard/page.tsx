@@ -23,7 +23,7 @@ export default function Dashboard() {
     "top" | "left" | "bottom" | "right"
   >("left");
   const [menuThickness, setMenuThickness] = useState("20vw");
-  const [openPage, setOpenPage] = useState<string>("storage");
+  const [openPage, setOpenPage] = useState<string>("auth");
 
   const toggleMenu = (
     position: "top" | "left" | "bottom" | "right",
@@ -52,7 +52,7 @@ export default function Dashboard() {
             <li onClick={() => setOpenPage("website")}>Website</li>
             <li onClick={() => setOpenPage("discord")}>Discord</li>
             <li onClick={() => setOpenPage("storage")}>Storage</li>
-            <li onClick={() => setOpenPage("settings")}>Settings</li>
+            {/* <li onClick={() => setOpenPage("settings")}>Settings</li> */}
           </ul>
         </div>
       </SlidingMenu>
