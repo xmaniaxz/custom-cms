@@ -62,7 +62,7 @@ export const LoginUser = async (
     // Set the cookie
     (await cookies()).set(userCookie, session.secret, {
       path: "/",
-      httpOnly: true, // Ensure the cookie is not accessible via JavaScript
+      httpOnly: false, // Ensure the cookie is not accessible via JavaScript
       sameSite: "strict", // 'lax' or 'none' based on your requirements
       secure: process.env.NODE_ENV === "production", // Ensure secure flag is set in production
       expires: SetExpiryDate(7), // Cookie expiry date)
@@ -165,22 +165,27 @@ export async function DeleteUser(userId: string) {
 
 export async function SaveFile(bucketId: string, fileID: string, file: File) {
   const storage = new Storage(await CreateAdminClient());
+
   let response;
   if (
-    (await FileExists(bucketId, fileID)) &&
+    !(await FileExists(bucketId, fileID)) &&
     fileID !== "" &&
-    (await FileNameExists(bucketId, file.name))
+    !(await FileNameExists(bucketId, file.name))
   ) {
-    //file exists, updating it
-
+    // File exists, updating it
     response = await storage.deleteFile(bucketId, fileID);
     return;
   }
+
+  console.log("Starting upload");
+
   response = await storage.createFile(
     bucketId,
     fileID !== "" ? fileID : ID.unique(),
-    file
+    file,
+    []
   );
+
   if (response.$id) {
     return { code: 200, message: "File uploaded" };
   }
@@ -196,7 +201,11 @@ export async function DeleteFile(
   try {
     let ID = fileID || "";
     if (fileName != "") {
-      const response = await storage.listFiles(bucketId, [Query.limit(1)], fileName);
+      const response = await storage.listFiles(
+        bucketId,
+        [Query.limit(1)],
+        fileName
+      );
       ID = response.files[0].$id;
     }
     await storage.deleteFile(bucketId, ID);
@@ -224,6 +233,7 @@ export async function FileNameExists(bucketId: string, fileName: string) {
 export async function GetFileNames(bucketID: string, componentName: string) {
   const storage = new Storage(await CreateAdminClient());
   const data = await storage.listFiles(bucketID, [], componentName);
+  console.log(data)
   return data.files;
 }
 export async function GetAllBucketFiles(bucketID: string) {

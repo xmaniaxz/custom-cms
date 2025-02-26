@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState, Children } from "react";
 import { SaveFile } from "@/components/node-appwrite";
+import { GetFileNames,GetUploadStatusOfAllFiles } from "@/components/apppwrite";
+import { RSCPathnameNormalizer } from "next/dist/server/normalizers/request/rsc";
 
 interface StorageContainerProps {
   children?: React.ReactNode;
@@ -30,24 +32,40 @@ const StorageContainer = ({
   const [oldName, setOldName] = useState<string>("");
 
   const onButtonClick = () => {
-    //create a hidden input element that activates when button is pressed
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.multiple = true;
-    //when a file is selected, save it to the database
+  
     fileInput.onchange = async (event) => {
       const files = (event.target as HTMLInputElement).files;
       if (files) {
-        const fileObj = [];
+        const fileObj: { name: string; type: string }[] = [];
+       
+  
         for (let i = 0; i < files.length; i++) {
-          const response = await SaveFile("67aa1870001eaadbdcbb", "", files[i]);
-          fileObj.push({name:files[i].name,type:files[i].type});
+          const file = files[i];
+          const fileData = { name: file.name, type: file.type };
+          fileObj.push(fileData); // Update UI immediately with file details
+          
+          // Run some code while waiting for SaveFile to resolve
+          const intervalId = setInterval(() => {
+            console.log("Trying to get file names");
+            GetUploadStatusOfAllFiles().then((response) => {console.log(response)});
+          }, 1000);
+          
+          SaveFile("67aa1870001eaadbdcbb", "", file).then((response) => {
+            clearInterval(intervalId); // Stop the interval once SaveFile is done
+            // Handle the response if needed
+            console.log(response);
+          });
         }
-        onFileUpdate(fileObj);
+        onFileUpdate(fileObj); // Update UI once all uploads are done
       }
     };
+  
     fileInput.click();
   };
+
   const handleDeselect = () => {
     //console.log(name, oldName);
     if (name === "") {
@@ -111,6 +129,7 @@ const StorageContainer = ({
         </button>
         {children}
       </div>
+      <button onClick={async()=>{console.log(await GetUploadStatusOfAllFiles())}}>GetAllFiles</button>
     </div>
   );
 };
