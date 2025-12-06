@@ -163,6 +163,11 @@ export async function DeleteUser(userId: string) {
   }
 }
 
+export async function GetLoggedInUserDetails() {
+  const users = new Users(await CreateUserClient());
+  return await users.get("me");
+}
+
 export async function SaveFile(bucketId: string, fileID: string, file: File) {
   const storage = new Storage(await CreateAdminClient());
 

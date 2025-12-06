@@ -16,6 +16,8 @@ const DiscordPage = dynamic(() => import("@/app/dashboard/discord/page"), {
   ssr: false,
 });
 const StoragePage = dynamic(() => import("@/app/dashboard/storage/page"), {ssr: false});
+const DonationPage = dynamic(() => import("@/app/dashboard/donations/page"), {
+  ssr: false,});
 
 export default function Dashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -49,10 +51,14 @@ export default function Dashboard() {
           <ul className="menu-list flex flex-col items-center">
             <li onClick={() => setOpenPage("")}>Overview</li>
             <li onClick={() => setOpenPage("auth")}>Auth</li>
-            <li onClick={() => setOpenPage("website")}>Website</li>
+            <li onClick={() => setOpenPage("donations")}>Donations</li>
+            {/* <li onClick={() => setOpenPage("website")}>Website</li> */}
+            <li className="text-gray-400 cursor-not-allowed">Website</li>
             <li onClick={() => setOpenPage("discord")}>Discord</li>
-            <li onClick={() => setOpenPage("storage")}>Storage</li>
+            {/* <li onClick={() => setOpenPage("storage")}>Storage</li> */}
             {/* <li onClick={() => setOpenPage("settings")}>Settings</li> */}
+            <li className="text-gray-400 cursor-not-allowed">Storage</li>
+            <li className="text-gray-400 cursor-not-allowed">Settings</li>
           </ul>
         </div>
       </SlidingMenu>
@@ -79,6 +85,7 @@ export default function Dashboard() {
           {openPage === "website" && <WebsitePage />}
           {openPage === "discord" && <DiscordPage />}
           {openPage === "storage" && <StoragePage />}
+          {openPage === "donations" && <DonationPage/>}
         </div>
         {openPage == "" && (
           <>
